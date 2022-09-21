@@ -21,30 +21,32 @@ def Preprocesado(fotograma):
 def EncontrarElContornoMasGrande(contornos):
     #Esta funcion simplemente coge todos los contornos procesados y nos da el mas grand y asumimimos que es la hoja
     #Y lo devolvemos
+
+    
     return contornos
 
 
 def EcontrarContornos(fotograma_preprocesado):
     contornos, _ = cv2.findContours(fotograma_preprocesado, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contornos_encontrados = np.array([])
+    iterador_contornos_validos = 0
+    contornos_encontrados = []
     for contorno in contornos:
     #Si el area es grande asumimos que es la hoja
         area = cv2.contourArea(contorno)
         if area > 6000:
             epilson = 0.01 * cv2.arcLength(contorno, True)
             aproximacion_contorno = cv2.approxPolyDP(contorno, epilson, True)
-            contornos_encontrados = np.(contornos_encontrados, [aproximacion_contorno], axis=0)
+            contornos_encontrados.append(contorno)
             cv2.drawContours(fotograma, [aproximacion_contorno], -1, (255, 0, 0), thickness=3)
-
-    contornos_ordenados = EncontrarElContornoMasGrande(contornos_encontrados)
-    print(contornos_ordenados)
-    
+        
+            return contorno
+  
 
 while(webcam.isOpened()):
 
     _, fotograma = webcam.read()
     fotograma_procesado = Preprocesado(fotograma)
-    EcontrarContornos(fotograma_procesado)
+    print(EcontrarContornos(fotograma_procesado))
     cv2.imshow("Webcam", fotograma)
     waitkey = cv2.waitKey(20)
 
