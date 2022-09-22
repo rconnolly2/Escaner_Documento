@@ -18,12 +18,7 @@ def Preprocesado(fotograma):
     fotograma_gris_blur_CannyEdge_disminuido_expandido = cv2.dilate(fotograma_gris_blur_CannyEdge_disminuido, kernel, iterations=1)
     return fotograma_gris_blur_CannyEdge_disminuido_expandido # Devolvemos la imagen preprocesada
 
-def EncontrarElContornoMasGrande(contornos):
-    #Esta funcion simplemente coge todos los contornos procesados y nos da el mas grand y asumimimos que es la hoja
-    #Y lo devolvemos
 
-    
-    return contornos
 
 
 def EcontrarContornos(fotograma_preprocesado):
@@ -34,12 +29,12 @@ def EcontrarContornos(fotograma_preprocesado):
     #Si el area es grande asumimos que es la hoja
         area = cv2.contourArea(contorno)
         if area > 6000:
-            epilson = 0.01 * cv2.arcLength(contorno, True)
+            epilson = 0.02 * cv2.arcLength(contorno, True)
             aproximacion_contorno = cv2.approxPolyDP(contorno, epilson, True)
             contornos_encontrados.append(contorno)
             cv2.drawContours(fotograma, [aproximacion_contorno], -1, (255, 0, 0), thickness=3)
-        
-            return contorno
+            if len(aproximacion_contorno) == 4:
+                return aproximacion_contorno
   
 
 while(webcam.isOpened()):
