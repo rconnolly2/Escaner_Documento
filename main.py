@@ -18,10 +18,20 @@ def Preprocesado(fotograma):
     fotograma_gris_blur_CannyEdge_disminuido_expandido = cv2.dilate(fotograma_gris_blur_CannyEdge_disminuido, kernel, iterations=1)
     return fotograma_gris_blur_CannyEdge_disminuido_expandido # Devolvemos la imagen preprocesada
 
+def WarpPerspective(imagen, contornos_mas_grandes):
+    altura = imagen.shape[0]
+    anchura = imagen.shape[1]
+
+    pt1 = np.float32(contornos_mas_grandes)
+    pt2 = np.float32([[0, 0], [anchura, 0], [0, altura], [anchura, altura]])
+    matriz = cv2.getPerspectiveTransform(pt1, pt2)
+    Imagen_Warp = cv2.warpPerspective(imagen, matriz, (anchura, altura))
+    return Imagen_Warp
 
 
 
 def EcontrarContornos(fotograma_preprocesado):
+    aproximacion_contorno = np.array([[0, 0], [0, 0], [0, 0], [0, 0]])
     contornos, _ = cv2.findContours(fotograma_preprocesado, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     iterador_contornos_validos = 0
     contornos_encontrados = []
@@ -35,14 +45,19 @@ def EcontrarContornos(fotograma_preprocesado):
             cv2.drawContours(fotograma, [aproximacion_contorno], -1, (255, 0, 0), thickness=3)
             if len(aproximacion_contorno) == 4:
                 return aproximacion_contorno
+    return aproximacion_contorno
   
 
 while(webcam.isOpened()):
 
     _, fotograma = webcam.read()
+
     fotograma_procesado = Preprocesado(fotograma)
-    print(EcontrarContornos(fotograma_procesado))
+    Contornos_mas_grandes = EcontrarContornos(fotograma_procesado)
+    Imagen_warp = WarpPerspective(fotograma, Contornos_mas_grandes)
+
     cv2.imshow("Webcam", fotograma)
+    cv2.imshow("Hoja detectada", Imagen_warp)
     waitkey = cv2.waitKey(20)
 
     #Si presionamos la tecla "q" el programa se cierra
