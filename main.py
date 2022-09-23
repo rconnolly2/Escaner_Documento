@@ -18,11 +18,40 @@ def Preprocesado(fotograma):
     fotograma_gris_blur_CannyEdge_disminuido_expandido = cv2.dilate(fotograma_gris_blur_CannyEdge_disminuido, kernel, iterations=1)
     return fotograma_gris_blur_CannyEdge_disminuido_expandido # Devolvemos la imagen preprocesada
 
-def WarpPerspective(imagen, contornos_mas_grandes):
-    altura = imagen.shape[0]
-    anchura = imagen.shape[1]
+def ReOrdenar(contornos_mas_grandes):
+    if not np.all(contornos_mas_grandes) == 0:
+        if contornos_mas_grandes.size < 10:
+            Contornos = contornos_mas_grandes.reshape((4, 2))
+            Sumatorio_Contornos = np.sum(Contornos, axis=1)
+            NuevosContornos = np.zeros((4, 1, 2), np.int32)
+            # Primer contorno:
+            NuevosContornos[0] = Contornos[np.argmin(Sumatorio_Contornos)]
+            # Ultimo contorno:
+            NuevosContornos[3] = Contornos[np.argmax(Sumatorio_Contornos)]
+            # # Buscamos el dato mayor los 2 arrays restantes y lo restamos a los menores para obtener la DIFERENCIA
+            # # La diferencia mas pequeña es el segundo dato para Nuevoscontornos y la mas grande el tercero
+            diferencias = []
+            for contornos in Contornos:
+                diferencia = (contornos[0]) - (contornos[1])
+                diferencias.append(diferencia)
 
-    pt1 = np.float32(contornos_mas_grandes)
+            # Segundo contorno:
+            NuevosContornos[1] = Contornos[diferencias.index(max(diferencias))]
+            # Tercer contorno:
+            NuevosContornos[2] = Contornos[diferencias.index(min(diferencias))]
+            # Retornamos nueva array ordenada correctamente:
+            return NuevosContornos
+    else:
+        return contornos_mas_grandes
+
+
+
+def WarpPerspective(imagen, contornos_mas_grandes):
+    anchura = imagen.shape[0]
+    altura = imagen.shape[1]
+
+    contornosmasgrandes_ordenados = ReOrdenar(contornos_mas_grandes)
+    pt1 = np.float32(contornosmasgrandes_ordenados)
     pt2 = np.float32([[0, 0], [anchura, 0], [0, altura], [anchura, altura]])
     matriz = cv2.getPerspectiveTransform(pt1, pt2)
     Imagen_Warp = cv2.warpPerspective(imagen, matriz, (anchura, altura))
